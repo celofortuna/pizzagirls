@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#87CEEB">
+<title>Pizza Girls Runner 🍕</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #1a1a2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100dvh;
+  overflow: hidden;
+  font-family: 'Segoe UI', 'Arial Rounded MT Bold', Arial, sans-serif;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#game-wrap {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  max-width: 960px;
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: auto;
+}
+
+/* ── HUD ── */
+#hud {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+  z-index: 10;
+}
+.hud-box {
+  background: rgba(255,255,255,0.88);
+  border-radius: 14px;
+  padding: 5px 12px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 66px;
+}
+.hud-label { font-size: 8px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#999; }
+.hud-value { font-size: 18px; font-weight:900; color:#333; line-height:1.1; }
+#hud-pizzas .hud-value { color:#e67e22; }
+#hud-score  .hud-value { color:#2980b9; }
+#hud-best   .hud-value { color:#8e44ad; }
+#hud-speed  .hud-value { color:#27ae60; }
+
+/* ── START SCREEN ── */
+#start-screen {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background: linear-gradient(180deg,#87CEEB 0%,#c5e8f7 55%,#90EE90 55%,#5cb85c 100%);
+  z-index:20; gap:16px; padding:24px;
+}
+#start-screen h1 {
+  font-size:clamp(28px,7vw,52px); font-weight:900; color:#fff;
+  text-shadow:0 3px 0 #e67e22, 0 6px 0 rgba(0,0,0,.15);
+  text-align:center; letter-spacing:-1px;
+}
+#start-screen p { font-size:clamp(13px,3.5vw,17px); color:#fff; text-align:center; font-weight:600; max-width:320px; text-shadow:0 1px 4px rgba(0,0,0,.3); }
+
+/* ── GAME OVER ── */
+#gameover-screen {
+  position:absolute; inset:0;
+  display:none; flex-direction:column;
+  align-items:center; justify-content:center;
+  background:rgba(0,0,0,.55); backdrop-filter:blur(5px);
+  z-index:20; gap:12px; padding:24px;
+}
+#gameover-screen h2 {
+  font-size:clamp(32px,8vw,58px); font-weight:900; color:#fff;
+  text-shadow:0 4px 0 #c0392b, 0 8px 20px rgba(0,0,0,.4); letter-spacing:-1px;
+}
+.go-stats {
+  background:rgba(255,255,255,.96); border-radius:20px;
+  padding:16px 30px; display:flex; flex-direction:column;
+  gap:8px; min-width:210px; box-shadow:0 8px 32px rgba(0,0,0,.25);
+}
+.go-stat { display:flex; justify-content:space-between; align-items:center; gap:20px; }
+.go-stat-label { font-size:12px; font-weight:700; color:#aaa; text-transform:uppercase; letter-spacing:.5px; }
+.go-stat-value { font-size:21px; font-weight:900; color:#333; }
+.go-stat-value.record { color:#8e44ad; }
+#new-record-badge {
+  background:linear-gradient(135deg,#f39c12,#e67e22);
+  color:#fff; padding:4px 14px; border-radius:20px;
+  font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.8px;
+  animation:pulse .6s ease infinite alternate; display:none;
+}
+@keyframes pulse { to { transform:scale(1.08); } }
+
+/* ── BUTTONS ── */
+.btn-start {
+  margin-top:6px;
+  background:linear-gradient(135deg,#ff6b35,#f7c59f);
+  border:none; border-radius:50px; padding:14px 40px;
+  font-size:clamp(15px,4vw,21px); font-weight:900; color:#fff; cursor:pointer;
+  box-shadow:0 6px 0 #c0392b, 0 8px 20px rgba(0,0,0,.2);
+  transition:transform .08s, box-shadow .08s;
+  letter-spacing:.5px; text-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.btn-start:active { transform:translateY(4px); box-shadow:0 2px 0 #c0392b; }
+.hint { font-size:11px; color:rgba(255,255,255,.75); text-align:center; }
+
+/* ── COMBO ── */
+#combo-display {
+  position:absolute; top:82px; left:50%; transform:translateX(-50%);
+  font-size:clamp(18px,5vw,30px); font-weight:900; color:#e67e22;
+  text-shadow:0 2px 8px rgba(0,0,0,.2);
+  pointer-events:none; opacity:0; transition:opacity .3s;
+  z-index:15; white-space:nowrap;
+}
+
+/* ── MISSION TOAST ── */
+#mission-toast {
+  position:absolute; bottom:22px; left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:linear-gradient(135deg,#2980b9,#3498db);
+  color:#fff; padding:9px 20px; border-radius:30px;
+  font-size:13px; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,.25);
+  pointer-events:none; z-index:15; white-space:nowrap;
+  transition:transform .4s cubic-bezier(.175,.885,.32,1.275);
+}
+#mission-toast.show { transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="game-wrap">
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="hud">
+    <div class="hud-box" id="hud-pizzas"><span class="hud-label">Pizzas</span><span class="hud-value" id="hud-pizzas-val">🍕 0</span></div>
+    <div class="hud-box" id="hud-score"> <span class="hud-label">Pontos</span><span class="hud-value" id="hud-score-val">0</span></div>
+    <div class="hud-box" id="hud-best">  <span class="hud-label">Recorde</span><span class="hud-value" id="hud-best-val">0</span></div>
+    <div class="hud-box" id="hud-speed"> <span class="hud-label">Vel.</span><span class="hud-value" id="hud-speed-val">1x</span></div>
+  </div>
+
+  <div id="combo-display">COMBO x2 🔥</div>
+  <div id="mission-toast">🎯 Missão: Colete 20 pizzas!</div>
+
+  <div id="start-screen">
+    <h1>🍕 Pizza Girls</h1>
+    <p>Corra, colete pizzas e desvie dos obstáculos!</p>
+    <button class="btn-start" id="btn-start">Jogar!</button>
+    <p class="hint">Toque • Espaço • ↑ para pular</p>
+  </div>
+
+  <div id="gameover-screen">
+    <h2>💥 Game Over</h2>
+    <div id="new-record-badge">⭐ NOVO RECORDE!</div>
+    <div class="go-stats">
+      <div class="go-stat"><span class="go-stat-label">Pontuação</span><span class="go-stat-value" id="go-score">0</span></div>
+      <div class="go-stat"><span class="go-stat-label">Pizzas</span><span class="go-stat-value" id="go-pizzas">0 🍕</span></div>
+      <div class="go-stat"><span class="go-stat-label">Recorde</span><span class="go-stat-value record" id="go-best">0</span></div>
+    </div>
+    <button class="btn-start" id="btn-restart">Jogar de novo!</button>
+  </div>
+</div>
+
+<script>
+/* =============================================================
+   PIZZA GIRLS RUNNER v2 — asset-based scenery
+   ============================================================= */
+
+// ── DOM ───────────────────────────────────────────────────────
+const canvas         = document.getElementById('gameCanvas');
+const ctx            = canvas.getContext('2d');
+const wrap           = document.getElementById('game-wrap');
+const startScreen    = document.getElementById('start-screen');
+const gameoverScreen = document.getElementById('gameover-screen');
+const hudPizzasVal   = document.getElementById('hud-pizzas-val');
+const hudScoreVal    = document.getElementById('hud-score-val');
+const hudBestVal     = document.getElementById('hud-best-val');
+const hudSpeedVal    = document.getElementById('hud-speed-val');
+const comboDisplay   = document.getElementById('combo-display');
+const missionToast   = document.getElementById('mission-toast');
+const goScore        = document.getElementById('go-score');
+const goPizzas       = document.getElementById('go-pizzas');
+const goBest         = document.getElementById('go-best');
+const newRecBadge    = document.getElementById('new-record-badge');
+
+// ── CANVAS / WORLD ────────────────────────────────────────────
+// Logical world size — all game coords are in these units.
+const W = 800, H = 380;
+
+function resizeCanvas() {
+  const ww = wrap.clientWidth, wh = wrap.clientHeight;
+  canvas.width  = W;
+  canvas.height = H;
+  canvas.style.width  = ww + 'px';
+  canvas.style.height = wh + 'px';
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// ── ASSETS ───────────────────────────────────────────────────
+// All images anchored at bottom. They share the same original
+// canvas height; we scale them uniformly to fill the world H.
+const URLS = {
+  sky:    'https://res.cloudinary.com/daorgqz6p/image/upload/v1782594400/Design_sem_nome_5_ccxlcf.png',
+  cloud:  'https://res.cloudinary.com/daorgqz6p/image/upload/v1782593699/Design_sem_nome_7_ddvkga.png',
+  house0: 'https://res.cloudinary.com/daorgqz6p/image/upload/v1782593700/Design_sem_nome_1_ditnqc.png',
+  house1: 'https://res.cloudinary.com/daorgqz6p/image/upload/v1782593701/Design_sem_nome_cwzlpp.png',
+  ground: 'https://res.cloudinary.com/daorgqz6p/image/upload/v1782593699/Design_sem_nome_4_jjvk9b.png',
+  tree:   'https://res.cloudinary.com/daorgqz6p/image/upload/v1782594288/Design_sem_nome_9_sgapp7.png',
+  bush:   'https://res.cloudinary.com/daorgqz6p/image/upload/v1782594288/Design_sem_nome_8_xhlc68.png',
+  fence:  'https://res.cloudinary.com/daorgqz6p/image/upload/v1782593700/Design_sem_nome_3_rygifz.png',
+  pizza:  'https://res.cloudinary.com/daorgqz6p/image/upload/v1782593700/Design_sem_nome_2_svzsmd.png',
+  cart:   'https://res.cloudinary.com/daorgqz6p/image/upload/v1782590921/Design_sem_nome_bz5lqi.png',
+};
+
+const imgs = {};
+let assetsLoaded = 0, assetsTotal = Object.keys(URLS).length;
+
+function loadImages(cb) {
+  Object.entries(URLS).forEach(([k, url]) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload  = () => { assetsLoaded++; if (assetsLoaded === assetsTotal) cb(); };
+    img.onerror = () => { assetsLoaded++; console.warn('Failed:', k); if (assetsLoaded === assetsTotal) cb(); };
+    img.src = url;
+    imgs[k] = img;
+  });
+}
+
+// ── LAYOUT ───────────────────────────────────────────────────
+// We define the "ground line" as where the runner stands.
+// The ground image tile will be drawn at the bottom of the canvas.
+// We'll figure out image natural sizes once loaded.
+
+// Ground tile scrolls at game speed. The image covers the entire
+// bottom strip (we draw it repeated horizontally).
+const GROUND_TILE_H = 90;           // px in world coords — the visible ground strip
+const GROUND_Y      = H - GROUND_TILE_H;  // top of ground = where floor starts
+const STAND_Y       = GROUND_Y;          // feet of player sit on this line
+
+// Houses sit behind trees, anchored bottom = GROUND_Y
+// Trees anchored bottom = GROUND_Y
+// Clouds float in sky
+
+// ── PARALLAX SPEEDS (world units/sec at speed=1) ─────────────
+const SPD = {
+  cloud:  30,
+  house:  60,
+  tree:  160,   // same as game speed so they move with ground
+  ground: 220,  // == base game speed
+};
+
+// ── SCENERY INSTANCES ─────────────────────────────────────────
+// Each is {x, y(bottom), w, h} in world coords.
+// We compute w/h from the image's natural aspect ratio scaled to a target height.
+
+function imgAspect(key) {
+  const im = imgs[key];
+  if (!im || !im.naturalWidth) return 1;
+  return im.naturalWidth / im.naturalHeight;
+}
+
+// Target rendered heights in world coords
+const TARGET_H = {
+  cloud:  60,
+  house0: 130,
+  house1: 130,
+  tree:   100,
+  bush:    55,
+  fence:   55,
+};
+
+function mkW(key) { return TARGET_H[key] * imgAspect(key); }
+
+// ── SCENERY POOLS ─────────────────────────────────────────────
+let clouds = [], houses = [], trees = [];
+
+function buildClouds() {
+  clouds = [];
+  for (let i = 0; i < 5; i++) {
+    clouds.push({
+      x: Math.random() * W,
+      y: 20 + Math.random() * 60,
+    });
+  }
+}
+
+function buildHouses() {
+  houses = [];
+  const gap = 260;
+  for (let i = 0; i < 5; i++) {
+    const key = Math.random() < 0.5 ? 'house0' : 'house1';
+    houses.push({ key, x: i * gap + Math.random() * 80 });
+  }
+}
+
+function buildTrees() {
+  trees = [];
+  const gap = 200;
+  for (let i = 0; i < 6; i++) {
+    trees.push({ x: i * gap + Math.random() * 80 });
+  }
+}
+
+// Scroll offsets for tiled ground
+let groundOffsetX = 0;
+
+// ── OBSTACLES ─────────────────────────────────────────────────
+// Only bush and fence are collidable obstacles.
+// They use their image assets. Hitbox is slightly inset.
+
+// Rendered sizes
+const OB = {
+  bush:  { key:'bush',  rw: mkW('bush')  || 60, rh: TARGET_H.bush,  hx:0.15, hy:0.05, hw:0.7, hh:0.85 },
+  fence: { key:'fence', rw: mkW('fence') || 55, rh: TARGET_H.fence, hx:0.1,  hy:0.0,  hw:0.8, hh:1.0  },
+};
+// hx/hy/hw/hh = hitbox as fraction of rendered size (shrink collision box)
+
+let obstacles = []; // { type:'bush'|'fence', x, bottom:STAND_Y }
+
+function obstacleHitbox(ob) {
+  const def = OB[ob.type];
+  const rw = def.rw, rh = def.rh;
+  const bx = ob.x + rw * def.hx;
+  const by = (ob.bottom - rh) + rh * def.hy;
+  const bw = rw * def.hw;
+  const bh = rh * def.hh;
+  return { x:bx, y:by, w:bw, h:bh };
+}
+
+function spawnObstacle() {
+  const last  = obstacles.length ? obstacles[obstacles.length-1].x : W + 80;
+  const baseGap = Math.max(260, 500 - speedMult * 50);
+  const gap   = baseGap * (0.7 + Math.random() * 0.6);
+  const type  = Math.random() < 0.55 ? 'bush' : 'fence';
+  obstacles.push({ type, x: last + gap, bottom: STAND_Y });
+}
+
+// ── PIZZAS ────────────────────────────────────────────────────
+const PIZ_SIZE = 38; // rendered size in world coords
+let pizzas = [];
+
+function spawnPizza() {
+  const last = obstacles.length ? obstacles[obstacles.length-1].x : W + 100;
+  // Float at two heights: on ground or mid-air
+  const groundY = STAND_Y - PIZ_SIZE;
+  const airY    = STAND_Y - PIZ_SIZE - 75;
+  const y = Math.random() < 0.5 ? groundY : airY;
+  pizzas.push({
+    x: last + 90 + Math.random() * 130,
+    y,
+    collected: false,
+    phase: Math.random() * Math.PI * 2,
+  });
+}
+
+// ── PLAYER ────────────────────────────────────────────────────
+const CART_W   = 60;
+const CART_H   = 52;
+const PLAYER_X = 120;
+const GRAVITY  = 1750;
+const JUMP_V   = -640;
+
+const player = {
+  x: PLAYER_X,
+  y: STAND_Y - CART_H,
+  vy: 0,
+  onGround: true,
+  squish: 1,
+  tilt: 0,
+};
+
+// ── PARTICLES & POPUPS ────────────────────────────────────────
+let particles = [], popups = [];
+
+function spawnParticles(x, y, color, n, spd) {
+  for (let i = 0; i < n; i++) {
+    const a = (Math.PI*2*i/n) + Math.random()*.6;
+    particles.push({
+      x, y,
+      vx: Math.cos(a)*spd*(0.5+Math.random()),
+      vy: Math.sin(a)*spd*(0.5+Math.random()) - 50,
+      life:1, decay:.028+Math.random()*.03,
+      size:4+Math.random()*5, color,
+    });
+  }
+}
+
+function spawnPopup(x, y, text, color) {
+  popups.push({ x, y, text, color, life:1, vy:-75 });
+}
+
+// ── AUDIO ─────────────────────────────────────────────────────
+const AC = new (window.AudioContext || window.webkitAudioContext)();
+function unlockAudio() { AC.resume(); }
+
+function tone(type, freq0, freq1, dur, gain) {
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = type;
+  o.frequency.setValueAtTime(freq0, AC.currentTime);
+  if (freq1 !== freq0) o.frequency.exponentialRampToValueAtTime(freq1, AC.currentTime + dur);
+  g.gain.setValueAtTime(gain, AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + dur);
+  o.start(); o.stop(AC.currentTime + dur);
+}
+
+function playJump()    { tone('sine',   280, 580, 0.14, 0.18); }
+function playHit()     { tone('sawtooth',140,50,0.3,0.3); }
+function playRecord()  {
+  [0,.1,.2,.3].forEach((t,i)=>{
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.connect(g);g.connect(AC.destination);
+    o.type='sine'; o.frequency.value=[523,659,784,1047][i];
+    g.gain.setValueAtTime(0.15,AC.currentTime+t);
+    g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+t+.15);
+    o.start(AC.currentTime+t); o.stop(AC.currentTime+t+.15);
+  });
+}
+function playCollect() {
+  [0,.06,.12].forEach((t,i)=>{
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.connect(g);g.connect(AC.destination);
+    o.type='triangle'; o.frequency.value=[520,660,780][i];
+    g.gain.setValueAtTime(0.14,AC.currentTime+t);
+    g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+t+.1);
+    o.start(AC.currentTime+t); o.stop(AC.currentTime+t+.1);
+  });
+}
+
+// ── STATE ─────────────────────────────────────────────────────
+let state = 'start'; // 'start' | 'playing' | 'dead'
+let score=0, bestScore=parseInt(localStorage.getItem('pgBest')||'0');
+let pizzaCount=0, pizzaTotal=0;
+let speedMult=1, speedLevel=1;
+let gameTime=0, frameIdx=0;
+let cameraShake=0, cameraZoom=1;
+let comboCount=0, comboClear=0;
+
+// ── MISSIONS ──────────────────────────────────────────────────
+const MISSIONS = [
+  { desc:'Colete 20 pizzas!',   target:20, prop:'pizzaTotal' },
+  { desc:'Alcance velocidade 3x!', target:3, prop:'speedLevel' },
+  { desc:'Colete 50 pizzas!',   target:50, prop:'pizzaTotal' },
+];
+let missionIdx = 0;
+
+// ── HELPERS ───────────────────────────────────────────────────
+function lerp(a,b,t){ return a+(b-a)*t; }
+function rectsOverlap(ax,ay,aw,ah,bx,by,bw,bh,m=0) {
+  return ax+m<bx+bw && ax+aw-m>bx+m && ay+m<by+bh && ay+ah-m>by+m;
+}
+
+// ── INIT WORLD ────────────────────────────────────────────────
+function initWorld() {
+  buildClouds(); buildHouses(); buildTrees();
+  // Recompute OB widths now that images are loaded
+  OB.bush.rw  = mkW('bush')  || 62;
+  OB.fence.rw = mkW('fence') || 56;
+}
+
+// ── RESET GAME ────────────────────────────────────────────────
+function resetGame() {
+  score=0; pizzaCount=0; pizzaTotal=0;
+  speedMult=1; speedLevel=1;
+  gameTime=0; frameIdx=0;
+  comboCount=0; comboClear=0;
+  cameraShake=0; cameraZoom=1;
+  groundOffsetX=0;
+
+  player.x=PLAYER_X; player.y=STAND_Y-CART_H;
+  player.vy=0; player.onGround=true;
+  player.squish=1; player.tilt=0;
+
+  obstacles=[]; pizzas=[]; particles=[]; popups=[];
+  MISSIONS.forEach(m=>m.done=false);
+  missionIdx=0;
+
+  initWorld();
+  spawnObstacle(); spawnObstacle(); spawnObstacle();
+  spawnPizza(); spawnPizza(); spawnPizza();
+
+  missionToast.textContent = '🎯 '+MISSIONS[0].desc;
+  setTimeout(()=>{ missionToast.classList.add('show'); setTimeout(()=>missionToast.classList.remove('show'),2800); },800);
+
+  state='playing';
+}
+
+// ── DRAW: BACKGROUND (sky image, full canvas) ─────────────────
+function drawSky() {
+  if (imgs.sky.complete && imgs.sky.naturalWidth) {
+    ctx.drawImage(imgs.sky, 0, 0, W, H);
+  } else {
+    ctx.fillStyle='#87CEEB';
+    ctx.fillRect(0,0,W,H);
+  }
+}
+
+// ── DRAW: CLOUDS (slow parallax, uses cloud image) ────────────
+function drawClouds(dt) {
+  const cw = TARGET_H.cloud * imgAspect('cloud') || 110;
+  const ch = TARGET_H.cloud;
+  clouds.forEach(cl => {
+    if (state==='playing') cl.x -= SPD.cloud * dt;
+    if (cl.x + cw < -10) { cl.x = W + 20; cl.y = 18 + Math.random()*55; }
+    if (imgs.cloud.complete && imgs.cloud.naturalWidth) {
+      ctx.drawImage(imgs.cloud, cl.x, cl.y, cw, ch);
+    }
+  });
+}
+
+// ── DRAW: HOUSES (medium parallax, anchored bottom=GROUND_Y) ──
+function drawHouses(dt) {
+  houses.forEach(h => {
+    if (state==='playing') h.x -= SPD.house * dt;
+    const key = h.key;
+    const rw  = TARGET_H[key] * imgAspect(key) || 140;
+    const rh  = TARGET_H[key];
+    if (h.x + rw < -10) {
+      h.x = W + 40 + Math.random()*120;
+      h.key = Math.random()<0.5?'house0':'house1';
+    }
+    if (imgs[key].complete && imgs[key].naturalWidth) {
+      // anchor bottom at GROUND_Y
+      ctx.drawImage(imgs[key], h.x, GROUND_Y - rh, rw, rh);
+    }
+  });
+}
+
+// ── DRAW: TREES (fast parallax same speed as ground, bottom=GROUND_Y) ──
+function drawTrees(dt) {
+  const rw = TARGET_H.tree * imgAspect('tree') || 80;
+  const rh = TARGET_H.tree;
+  trees.forEach(tr => {
+    if (state==='playing') tr.x -= SPD.tree * speedMult * dt;
+    if (tr.x + rw < -10) {
+      tr.x = W + 20 + Math.random()*100;
+    }
+    if (imgs.tree.complete && imgs.tree.naturalWidth) {
+      ctx.drawImage(imgs.tree, tr.x, GROUND_Y - rh, rw, rh);
+    }
+  });
+}
+
+// ── DRAW: GROUND (looping tile, anchored bottom=H) ────────────
+function drawGround(dt) {
+  if (state==='playing') {
+    groundOffsetX = (groundOffsetX + SPD.ground * speedMult * dt) % W;
+  }
+  if (!imgs.ground.complete || !imgs.ground.naturalWidth) {
+    ctx.fillStyle='#7cb87c';
+    ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+    return;
+  }
+  // The ground image is drawn at full width and GROUND_TILE_H height,
+  // looped horizontally via two copies offset by groundOffsetX.
+  const gh = GROUND_TILE_H;
+  const gy = H - gh; // bottom-anchored
+  ctx.drawImage(imgs.ground, -groundOffsetX,        gy, W, gh);
+  ctx.drawImage(imgs.ground, W - groundOffsetX,     gy, W, gh);
+  // Extra safety copy
+  if (groundOffsetX > 0) {
+    ctx.drawImage(imgs.ground, -groundOffsetX + W*2, gy, W, gh);
+  }
+}
+
+// ── DRAW: OBSTACLES (bush + fence as images, bottom=STAND_Y) ──
+function drawObstacles() {
+  obstacles.forEach(ob => {
+    const def = OB[ob.type];
+    const rw = def.rw, rh = def.rh;
+    if (imgs[def.key].complete && imgs[def.key].naturalWidth) {
+      ctx.drawImage(imgs[def.key], ob.x, ob.bottom - rh, rw, rh);
+    } else {
+      // Fallback rect
+      ctx.fillStyle = ob.type==='bush'?'#4caf50':'#795548';
+      ctx.fillRect(ob.x, ob.bottom - rh, rw, rh);
+    }
+  });
+}
+
+// ── DRAW: PIZZAS (image, float + rotate) ──────────────────────
+function drawPizzas(dt) {
+  pizzas.forEach(pz => {
+    if (pz.collected) return;
+    pz.phase += dt * 3;
+    const bob = Math.sin(pz.phase) * 7;
+    const rot = Math.sin(pz.phase * 0.6) * 0.2;
+    ctx.save();
+    ctx.translate(pz.x + PIZ_SIZE/2, pz.y + PIZ_SIZE/2 + bob);
+    ctx.rotate(rot);
+    // Glow
+    ctx.shadowBlur = 20; ctx.shadowColor = '#f39c12';
+    if (imgs.pizza.complete && imgs.pizza.naturalWidth) {
+      ctx.drawImage(imgs.pizza, -PIZ_SIZE/2, -PIZ_SIZE/2, PIZ_SIZE, PIZ_SIZE);
+    } else {
+      ctx.font = '28px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('🍕',0,0);
+    }
+    ctx.shadowBlur=0;
+    ctx.restore();
+  });
+}
+
+// ── DRAW: PLAYER (cart image, squish + tilt) ──────────────────
+function drawPlayer() {
+  const px=player.x, py=player.y;
+  const cw=CART_W, ch=CART_H;
+
+  // Shadow
+  const airRatio = Math.max(0, Math.min(1, (STAND_Y - CART_H - py) / 120));
+  ctx.save();
+  ctx.globalAlpha = 0.22 - airRatio * 0.1;
+  ctx.fillStyle='#000';
+  ctx.beginPath();
+  ctx.ellipse(px+cw/2, STAND_Y+5, (cw/2)*(0.5+airRatio*0.5), 5, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // Cart
+  ctx.save();
+  ctx.translate(px + cw/2, py + ch/2);
+  ctx.rotate(player.tilt);
+  ctx.scale(1, player.squish);
+  if (imgs.cart.complete && imgs.cart.naturalWidth) {
+    ctx.drawImage(imgs.cart, -cw/2, -ch/2, cw, ch);
+  } else {
+    ctx.fillStyle='#e91e63';
+    ctx.fillRect(-cw/2,-ch/2,cw,ch);
+  }
+  ctx.restore();
+}
+
+// ── DRAW: PARTICLES ───────────────────────────────────────────
+function drawParticles(dt) {
+  particles = particles.filter(p=>p.life>0);
+  particles.forEach(p => {
+    p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=300*dt; p.life-=p.decay;
+    ctx.globalAlpha=Math.max(0,p.life);
+    ctx.fillStyle=p.color;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2); ctx.fill();
+  });
+  ctx.globalAlpha=1;
+}
+
+// ── DRAW: POPUPS ──────────────────────────────────────────────
+function drawPopups(dt) {
+  popups = popups.filter(p=>p.life>0);
+  popups.forEach(p => {
+    p.y+=p.vy*dt; p.life-=dt*1.4;
+    ctx.globalAlpha=Math.max(0,p.life);
+    ctx.fillStyle=p.color;
+    ctx.font='bold 18px Arial'; ctx.textAlign='center';
+    ctx.fillText(p.text,p.x,p.y);
+  });
+  ctx.globalAlpha=1;
+}
+
+// ── JUMP ──────────────────────────────────────────────────────
+function jump() {
+  if (state!=='playing') return;
+  if (player.onGround) {
+    player.vy=JUMP_V; player.onGround=false;
+    playJump();
+  }
+}
+
+// ── GAME OVER ─────────────────────────────────────────────────
+function triggerGameOver() {
+  if (state!=='playing') return;
+  state='dead';
+  playHit();
+  cameraShake=0.5;
+  spawnParticles(player.x+CART_W/2, player.y+CART_H/2, '#795548', 20, 240);
+  const isRec = score > bestScore;
+  if (isRec) { bestScore=score; localStorage.setItem('pgBest',Math.floor(bestScore)); playRecord(); }
+  goScore.textContent  = Math.floor(score).toLocaleString();
+  goPizzas.textContent = pizzaCount+' 🍕';
+  goBest.textContent   = Math.floor(bestScore).toLocaleString();
+  newRecBadge.style.display = isRec?'block':'none';
+  setTimeout(()=>{ gameoverScreen.style.display='flex'; }, 600);
+}
+
+// ── CHECK MISSIONS ────────────────────────────────────────────
+function checkMissions() {
+  if (missionIdx>=MISSIONS.length) return;
+  const m = MISSIONS[missionIdx];
+  const v = m.prop==='pizzaTotal'?pizzaTotal:speedLevel;
+  if (v>=m.target && !m.done) {
+    m.done=true; missionIdx++;
+    missionToast.textContent='✅ '+m.desc+' Concluído!';
+    missionToast.classList.add('show');
+    setTimeout(()=>missionToast.classList.remove('show'),2800);
+    if (missionIdx<MISSIONS.length) {
+      setTimeout(()=>{
+        missionToast.textContent='🎯 '+MISSIONS[missionIdx].desc;
+        missionToast.classList.add('show');
+        setTimeout(()=>missionToast.classList.remove('show'),2800);
+      },3200);
+    }
+  }
+}
+
+// ── MAIN LOOP ─────────────────────────────────────────────────
+let lastTime=0;
+
+function gameLoop(ts) {
+  const dt = Math.min((ts-lastTime)/1000, 0.05);
+  lastTime=ts; frameIdx++;
+
+  ctx.save();
+
+  // Camera shake
+  if (cameraShake>0) {
+    ctx.translate((Math.random()-.5)*cameraShake*14, (Math.random()-.5)*cameraShake*14);
+    cameraShake=Math.max(0,cameraShake-dt*4);
+  }
+
+  // Camera zoom on collect
+  if (Math.abs(cameraZoom-1)>0.001) {
+    cameraZoom=lerp(cameraZoom,1,dt*9);
+    ctx.translate(W/2,H/2); ctx.scale(cameraZoom,cameraZoom); ctx.translate(-W/2,-H/2);
+  } else { cameraZoom=1; }
+
+  // ── RENDER LAYERS (back → front) ────────────────────────
+  drawSky();
+  drawClouds(dt);
+  drawHouses(dt);
+  drawTrees(dt);
+  drawGround(dt);
+
+  // ── GAME LOGIC ──────────────────────────────────────────
+  if (state==='playing') {
+    gameTime+=dt;
+
+    // Speed ramp every 20s
+    const ns = 1 + Math.floor(gameTime/20)*0.15;
+    if (ns>speedMult) {
+      speedMult=ns; speedLevel=Math.floor(speedMult);
+      spawnParticles(W*0.65, STAND_Y-30, '#ffffff', 8, 320);
+    }
+
+    // Score
+    score += speedMult*12*dt;
+
+    // Combo decay
+    comboClear-=dt;
+    if (comboClear<=0) {
+      comboCount=0; comboDisplay.style.opacity='0';
+    }
+
+    // ── PHYSICS ─────────────────────────────────────────
+    if (!player.onGround) {
+      player.vy += GRAVITY*dt;
+      player.y  += player.vy*dt;
+      player.tilt = Math.max(-0.22, Math.min(0.22, -player.vy*0.00028));
+    }
+    if (player.y >= STAND_Y-CART_H) {
+      if (!player.onGround) {
+        player.squish=0.62;
+        spawnParticles(player.x+CART_W/2, STAND_Y+3, '#7cb87c', 6, 90);
+      }
+      player.y=STAND_Y-CART_H; player.vy=0; player.onGround=true; player.tilt=0;
+    }
+    player.squish=lerp(player.squish,1,dt*13);
+
+    // ── MOVE OBSTACLES ───────────────────────────────────
+    const objSpd = SPD.ground * speedMult;
+    obstacles.forEach(ob=>{ ob.x -= objSpd*dt; });
+    obstacles = obstacles.filter(ob=>ob.x + OB[ob.type].rw > -20);
+    while (obstacles.length<4) spawnObstacle();
+
+    // ── MOVE PIZZAS ──────────────────────────────────────
+    pizzas.forEach(pz=>{ pz.x -= objSpd*dt; });
+    pizzas = pizzas.filter(pz=>pz.x > -60 && !pz.collected);
+    while (pizzas.length<4) spawnPizza();
+
+    // ── COLLISION: obstacles ─────────────────────────────
+    const M = 10; // pixel margin for forgiveness
+    for (const ob of obstacles) {
+      const hb = obstacleHitbox(ob);
+      if (rectsOverlap(player.x,player.y,CART_W,CART_H, hb.x,hb.y,hb.w,hb.h, M)) {
+        triggerGameOver(); break;
+      }
+    }
+
+    // ── COLLISION: pizzas ────────────────────────────────
+    if (state==='playing') {
+      pizzas.forEach(pz=>{
+        if (pz.collected) return;
+        if (rectsOverlap(player.x,player.y,CART_W,CART_H,
+                         pz.x,pz.y,PIZ_SIZE,PIZ_SIZE, 8)) {
+          pz.collected=true; pizzaCount++; pizzaTotal++; score+=100;
+          playCollect(); cameraZoom=1.025;
+          comboCount++; comboClear=2;
+          if (comboCount>=2) {
+            comboDisplay.textContent=`COMBO x${comboCount} 🔥`;
+            comboDisplay.style.opacity='1';
+          }
+          spawnParticles(pz.x+PIZ_SIZE/2,pz.y+PIZ_SIZE/2,'#f39c12',10,160);
+          spawnParticles(pz.x+PIZ_SIZE/2,pz.y+PIZ_SIZE/2,'#fff176',6,210);
+          const bonus = comboCount>=2 ? `+${comboCount*100}🍕` : '+100';
+          spawnPopup(pz.x+PIZ_SIZE/2, pz.y, bonus, '#f39c12');
+          checkMissions();
+        }
+      });
+    }
+
+    // HUD
+    hudPizzasVal.textContent='🍕 '+pizzaCount;
+    hudScoreVal.textContent =Math.floor(score).toLocaleString();
+    hudBestVal.textContent  =Math.floor(bestScore).toLocaleString();
+    hudSpeedVal.textContent =speedMult.toFixed(1)+'x';
+  }
+
+  // ── ALWAYS DRAW (on top) ──────────────────────────────
+  drawObstacles();
+  drawPizzas(dt);
+  drawPlayer();
+  drawParticles(dt);
+  drawPopups(dt);
+
+  ctx.restore();
+  requestAnimationFrame(gameLoop);
+}
+
+// ── START ─────────────────────────────────────────────────────
+loadImages(() => {
+  // Recompute sizes after images load
+  OB.bush.rw  = TARGET_H.bush  * imgAspect('bush');
+  OB.fence.rw = TARGET_H.fence * imgAspect('fence');
+  buildClouds(); buildHouses(); buildTrees();
+  requestAnimationFrame(ts => { lastTime=ts; requestAnimationFrame(gameLoop); });
+});
+
+// ── INPUT ─────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.code==='Space'||e.code==='ArrowUp') { e.preventDefault(); unlockAudio(); jump(); }
+});
+canvas.addEventListener('touchstart', e => { e.preventDefault(); unlockAudio(); jump(); }, {passive:false});
+canvas.addEventListener('mousedown',  ()=> { unlockAudio(); jump(); });
+
+document.getElementById('btn-start').addEventListener('click', ()=>{
+  unlockAudio(); startScreen.style.display='none'; resetGame();
+});
+document.getElementById('btn-restart').addEventListener('click', ()=>{
+  unlockAudio(); gameoverScreen.style.display='none'; resetGame();
+});
+document.addEventListener('touchstart', ()=>{ if(state==='playing'){unlockAudio();jump();} },{passive:true});
+</script>
+</body>
+</html>
