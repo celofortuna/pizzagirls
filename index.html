@@ -7,6 +7,9 @@
 <meta name="theme-color" content="#4FC3F7">
 <title>Pizza Girls Runner 🍕</title>
 <style>
+/* =================================================================
+   UI & LAYOUT (CSS)
+   ================================================================= */
 * { margin:0; padding:0; box-sizing:border-box; }
 
 body {
@@ -17,125 +20,123 @@ body {
   touch-action:none; user-select:none; -webkit-user-select:none;
 }
 
+/* O sistema de escala garante que o jogo nunca distorça */
 #game-wrap {
-  position:relative;
-  /* keep 16:9-ish but fill screen */
-  width:100%; height:100dvh;
-  max-width:960px;
+  position:absolute;
+  left:50%; top:50%;
+  transform:translate(-50%, -50%);
+  width:1000px; height:600px;
   overflow:hidden;
+  transform-origin:center center;
+  background:#4FC3F7;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
 
 canvas {
   display:block;
-  width:100%; height:100%;
+  width:1000px; height:600px;
   image-rendering:auto;
 }
 
 /* ── HUD ── */
 #hud {
   position:absolute; top:0; left:0; right:0;
-  padding:10px 14px;
+  padding:15px 20px;
   display:flex; justify-content:space-between; align-items:flex-start;
   pointer-events:none; z-index:10;
 }
 .hud-box {
-  background:rgba(255,255,255,0.90);
-  border-radius:12px; padding:5px 12px;
-  box-shadow:0 3px 10px rgba(0,0,0,.18);
-  display:flex; flex-direction:column; align-items:center; min-width:64px;
+  background:rgba(255,255,255,0.92);
+  border-radius:12px; padding:8px 16px;
+  box-shadow:0 4px 12px rgba(0,0,0,.15);
+  display:flex; flex-direction:column; align-items:center; min-width:80px;
 }
-.hud-label { font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#999; }
-.hud-value { font-size:18px; font-weight:900; color:#333; line-height:1.1; }
+.hud-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#999; }
+.hud-value { font-size:22px; font-weight:900; color:#333; line-height:1.2; }
 #hp .hud-value{color:#e67e22;} #hs .hud-value{color:#2980b9;}
 #hb .hud-value{color:#8e44ad;} #hv .hud-value{color:#27ae60;}
 
-/* ── LOADING ── */
-#loading {
+/* ── SCREENS ── */
+.screen {
   position:absolute; inset:0; z-index:30;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  background:linear-gradient(180deg,#4FC3F7 0%,#81D4FA 55%,#A5D6A7 55%,#66BB6A 100%);
-  gap:16px;
+  gap:20px; padding:30px;
 }
-#loading h2 { font-size:28px; font-weight:900; color:#fff; text-shadow:0 3px 0 #e67e22; }
-#loading-bar-wrap { width:200px; height:12px; background:rgba(255,255,255,.4); border-radius:20px; overflow:hidden; }
-#loading-bar { height:100%; width:0%; background:#fff; border-radius:20px; transition:width .15s; }
-
-/* ── START SCREEN ── */
-#start-screen {
-  position:absolute; inset:0; z-index:20;
-  display:none; flex-direction:column;
-  align-items:center; justify-content:center;
+#loading {
   background:linear-gradient(180deg,#4FC3F7 0%,#81D4FA 55%,#A5D6A7 55%,#66BB6A 100%);
-  gap:16px; padding:24px;
+  z-index:40;
+}
+#loading h2 { font-size:32px; font-weight:900; color:#fff; text-shadow:0 3px 0 #e67e22; }
+#loading-bar-wrap { width:240px; height:14px; background:rgba(255,255,255,.4); border-radius:20px; overflow:hidden; }
+#loading-bar { height:100%; width:0%; background:#fff; border-radius:20px; transition:width .15s ease-out; }
+
+#start-screen {
+  background:linear-gradient(180deg,#4FC3F7 0%,#81D4FA 55%,#A5D6A7 55%,#66BB6A 100%);
+  display:none;
 }
 #start-screen h1 {
-  font-size:clamp(28px,7vw,52px); font-weight:900; color:#fff;
-  text-shadow:0 3px 0 #e67e22,0 6px 0 rgba(0,0,0,.12);
-  text-align:center; letter-spacing:-1px;
+  font-size:64px; font-weight:900; color:#fff;
+  text-shadow:0 4px 0 #e67e22,0 8px 0 rgba(0,0,0,.15);
+  text-align:center; letter-spacing:-1px; margin-bottom:10px;
 }
 #start-screen p {
-  font-size:clamp(13px,3.5vw,17px); color:#fff;
-  text-align:center; font-weight:600; max-width:300px;
-  text-shadow:0 1px 4px rgba(0,0,0,.25);
+  font-size:20px; color:#fff;
+  text-align:center; font-weight:600; max-width:400px;
+  text-shadow:0 2px 5px rgba(0,0,0,.25);
 }
-.hint { font-size:11px; color:rgba(255,255,255,.75); text-align:center; }
+.hint { font-size:14px !important; color:rgba(255,255,255,.8) !important; margin-top:10px; }
 
-/* ── GAME OVER ── */
 #gameover-screen {
-  position:absolute; inset:0; z-index:20;
-  display:none; flex-direction:column;
-  align-items:center; justify-content:center;
-  background:rgba(0,0,0,.58); backdrop-filter:blur(5px);
-  gap:12px; padding:24px;
+  background:rgba(0,0,0,.65); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  display:none;
 }
 #gameover-screen h2 {
-  font-size:clamp(30px,8vw,56px); font-weight:900; color:#fff;
-  text-shadow:0 4px 0 #c0392b,0 8px 20px rgba(0,0,0,.35); letter-spacing:-1px;
+  font-size:60px; font-weight:900; color:#fff;
+  text-shadow:0 5px 0 #c0392b,0 10px 25px rgba(0,0,0,.4); letter-spacing:-1px;
 }
 .go-stats {
-  background:rgba(255,255,255,.96); border-radius:18px;
-  padding:14px 28px; display:flex; flex-direction:column;
-  gap:8px; min-width:200px; box-shadow:0 8px 32px rgba(0,0,0,.2);
+  background:rgba(255,255,255,.98); border-radius:20px;
+  padding:20px 35px; display:flex; flex-direction:column;
+  gap:12px; min-width:260px; box-shadow:0 10px 40px rgba(0,0,0,.3);
 }
-.go-stat { display:flex; justify-content:space-between; align-items:center; gap:20px; }
-.go-stat-label { font-size:11px; font-weight:700; color:#aaa; text-transform:uppercase; letter-spacing:.5px; }
-.go-stat-value { font-size:20px; font-weight:900; color:#333; }
+.go-stat { display:flex; justify-content:space-between; align-items:center; gap:25px; }
+.go-stat-label { font-size:13px; font-weight:700; color:#aaa; text-transform:uppercase; letter-spacing:.5px; }
+.go-stat-value { font-size:24px; font-weight:900; color:#333; }
 .go-stat-value.rec { color:#8e44ad; }
 #rec-badge {
   background:linear-gradient(135deg,#f39c12,#e67e22);
-  color:#fff; padding:4px 14px; border-radius:20px;
-  font-size:11px; font-weight:900; text-transform:uppercase;
-  letter-spacing:.8px; animation:pulse .6s ease infinite alternate; display:none;
+  color:#fff; padding:6px 18px; border-radius:20px;
+  font-size:13px; font-weight:900; text-transform:uppercase;
+  letter-spacing:1px; animation:pulse .6s ease infinite alternate; display:none;
 }
-@keyframes pulse{to{transform:scale(1.08);}}
+@keyframes pulse{to{transform:scale(1.1);}}
 
 /* ── BUTTONS ── */
 .btn {
-  margin-top:6px;
+  margin-top:10px;
   background:linear-gradient(135deg,#ff6b35,#f7c59f);
-  border:none; border-radius:50px; padding:13px 38px;
-  font-size:clamp(15px,4vw,20px); font-weight:900; color:#fff; cursor:pointer;
-  box-shadow:0 5px 0 #c0392b,0 8px 18px rgba(0,0,0,.2);
-  transition:transform .08s,box-shadow .08s;
-  letter-spacing:.5px; text-shadow:0 1px 3px rgba(0,0,0,.2);
+  border:none; border-radius:50px; padding:16px 45px;
+  font-size:24px; font-weight:900; color:#fff; cursor:pointer;
+  box-shadow:0 6px 0 #c0392b,0 10px 20px rgba(0,0,0,.25);
+  transition:transform .1s,box-shadow .1s;
+  letter-spacing:1px; text-shadow:0 2px 4px rgba(0,0,0,.2);
+  outline:none;
 }
-.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #c0392b;}
+.btn:active{transform:translateY(6px);box-shadow:0 0px 0 #c0392b;}
 
-/* ── COMBO ── */
+/* ── OVERLAYS ── */
 #combo {
-  position:absolute; top:78px; left:50%; transform:translateX(-50%);
-  font-size:clamp(18px,5vw,28px); font-weight:900; color:#e67e22;
-  text-shadow:0 2px 8px rgba(0,0,0,.2);
+  position:absolute; top:110px; left:50%; transform:translateX(-50%);
+  font-size:32px; font-weight:900; color:#e67e22;
+  text-shadow:0 3px 10px rgba(0,0,0,.25), 0 0 15px rgba(230,126,34,0.5);
   pointer-events:none; opacity:0; transition:opacity .3s; z-index:15; white-space:nowrap;
 }
-
-/* ── MISSION TOAST ── */
 #toast {
-  position:absolute; bottom:20px; left:50%;
-  transform:translateX(-50%) translateY(70px);
+  position:absolute; bottom:30px; left:50%;
+  transform:translateX(-50%) translateY(100px);
   background:linear-gradient(135deg,#2980b9,#3498db);
-  color:#fff; padding:8px 18px; border-radius:30px;
-  font-size:13px; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,.22);
+  color:#fff; padding:12px 24px; border-radius:30px;
+  font-size:16px; font-weight:700; box-shadow:0 5px 20px rgba(0,0,0,.3);
   pointer-events:none; z-index:15; white-space:nowrap;
   transition:transform .4s cubic-bezier(.175,.885,.32,1.275);
 }
@@ -143,10 +144,10 @@ canvas {
 </style>
 </head>
 <body>
+
 <div id="game-wrap">
   <canvas id="c"></canvas>
 
-  <!-- HUD -->
   <div id="hud">
     <div class="hud-box" id="hp"><span class="hud-label">Pizzas</span><span class="hud-value" id="hp-v">🍕 0</span></div>
     <div class="hud-box" id="hs"><span class="hud-label">Pontos</span><span class="hud-value" id="hs-v">0</span></div>
@@ -157,22 +158,19 @@ canvas {
   <div id="combo">COMBO x2 🔥</div>
   <div id="toast">🎯 Colete 20 pizzas!</div>
 
-  <!-- LOADING -->
-  <div id="loading">
+  <div id="loading" class="screen">
     <h2>🍕 Carregando…</h2>
     <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
   </div>
 
-  <!-- START -->
-  <div id="start-screen">
+  <div id="start-screen" class="screen">
     <h1>🍕 Pizza Girls</h1>
     <p>Corra, colete pizzas e desvie dos obstáculos!</p>
     <button class="btn" id="btn-start">Jogar!</button>
     <p class="hint">Toque • Espaço • ↑ para pular</p>
   </div>
 
-  <!-- GAME OVER -->
-  <div id="gameover-screen">
+  <div id="gameover-screen" class="screen">
     <h2>💥 Game Over</h2>
     <div id="rec-badge">⭐ NOVO RECORDE!</div>
     <div class="go-stats">
@@ -186,50 +184,47 @@ canvas {
 
 <script>
 /* =================================================================
-   PIZZA GIRLS RUNNER v3
-   - All assets loaded before game starts
-   - Fixed rendered sizes (no dynamic aspect calc during gameplay)
-   - Ground tile loops correctly, bottom-anchored
-   - Houses / trees properly sized and layered
+   PIZZA GIRLS RUNNER - REFACTORED ENGINE
+   - Fixed Resolution & Perfect Scaling
+   - Unified Baseline (Ground Y)
+   - Independent Hitboxes & Offsets
+   - True Parallax Scrolling
+   - Optimized Rendering & Object Pooling
    ================================================================= */
 
-// ── DOM ──────────────────────────────────────────────────────────
-const canvas   = document.getElementById('c');
-const ctx      = canvas.getContext('2d');
-const wrap     = document.getElementById('game-wrap');
-const loading  = document.getElementById('loading');
-const loadBar  = document.getElementById('loading-bar');
-const startScr = document.getElementById('start-screen');
-const goScr    = document.getElementById('gameover-screen');
-const hpv      = document.getElementById('hp-v');
-const hsv      = document.getElementById('hs-v');
-const hbv      = document.getElementById('hb-v');
-const hvv      = document.getElementById('hv-v');
-const comboEl  = document.getElementById('combo');
-const toastEl  = document.getElementById('toast');
-const goS      = document.getElementById('go-s');
-const goP      = document.getElementById('go-p');
-const goB      = document.getElementById('go-b');
-const recBadge = document.getElementById('rec-badge');
+// ── 1. CONFIG & RESOLUTION ───────────────────────────────────────
+const W = 1000;
+const H = 600;
+const BASELINE = 450; // Linha única de chão (Y absoluto onde pés tocam)
 
-// ── WORLD SIZE ───────────────────────────────────────────────────
-// All game coordinates live in this logical space.
-// Canvas is scaled via CSS to fill the container.
-const W = 800;
-const H = 400;
-
-canvas.width  = W;
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d', { alpha: false }); // Otimização
+canvas.width = W;
 canvas.height = H;
 
-function resizeCanvas() {
-  const ww = wrap.clientWidth, wh = wrap.clientHeight;
-  canvas.style.width  = ww + 'px';
-  canvas.style.height = wh + 'px';
+// Escalamento Responsivo CSS
+function resize() {
+  const wrap = document.getElementById('game-wrap');
+  const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
+  wrap.style.transform = `translate(-50%, -50%) scale(${scale})`;
 }
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+window.addEventListener('resize', resize);
+resize();
 
-// ── ASSET URLS ────────────────────────────────────────────────────
+// ── 2. ASSETS & SPRITES ──────────────────────────────────────────
+// Define tamanhos fixos independentes do PNG original e compensa áreas transparentes.
+const SPRITES = {
+  cart:   { w: 126, h: 105, ox: 0, oy: 0 },
+  pizza:  { w: 48,  h: 48,  ox: 0, oy: 0 },
+  house0: { w: 170, h: 170, ox: 0, oy: 0 },
+  house1: { w: 150, h: 170, ox: 0, oy: 0 },
+  tree:   { w: 100, h: 150, ox: 0, oy: 15 }, // offsetY ajusta raiz pro chão
+  bush:   { w: 80,  h: 70,  ox: 0, oy: 5 },
+  fence:  { w: 80,  h: 75,  ox: 0, oy: 5 },
+  cloud:  { w: 140, h: 80,  ox: 0, oy: 0 },
+  ground: { w: W,   h: H - BASELINE, ox: 0, oy: 0 }
+};
+
 const ASSET_URLS = {
   sky:    'https://res.cloudinary.com/daorgqz6p/image/upload/v1782594400/Design_sem_nome_5_ccxlcf.png',
   cloud:  'https://res.cloudinary.com/daorgqz6p/image/upload/v1782593699/Design_sem_nome_7_ddvkga.png',
@@ -243,19 +238,20 @@ const ASSET_URLS = {
   cart:   'https://res.cloudinary.com/daorgqz6p/image/upload/v1782590921/Design_sem_nome_bz5lqi.png',
 };
 
-const IMG = {}; // key → HTMLImageElement (populated after load)
+const IMG = {};
 
 function loadAllAssets() {
   return new Promise(resolve => {
     const keys = Object.keys(ASSET_URLS);
-    let done = 0;
+    let loaded = 0;
+    const bar = document.getElementById('loading-bar');
     keys.forEach(k => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = img.onerror = () => {
-        done++;
-        loadBar.style.width = (done / keys.length * 100) + '%';
-        if (done === keys.length) resolve();
+        loaded++;
+        bar.style.width = `${(loaded / keys.length) * 100}%`;
+        if (loaded === keys.length) resolve();
       };
       img.src = ASSET_URLS[k];
       IMG[k] = img;
@@ -263,629 +259,412 @@ function loadAllAssets() {
   });
 }
 
-// ── LAYOUT CONSTANTS ────────────────────────────────────────────
-// Ground tile occupies the bottom strip of the world.
-// Everything is bottom-anchored relative to FLOOR_Y.
-//
-// The ground image has grass on top + dirt on bottom.
-// We render it as a horizontal tile strip at the bottom.
+// ── 3. STATE & PARALLAX ──────────────────────────────────────────
+let state = 'loading'; // loading | start | playing | dead
+let score = 0, bestScore = parseInt(localStorage.getItem('pgBest')||'0');
+let pizzaCount = 0, pizzaTotal = 0;
+let speedMult = 1, speedLevel = 1;
+let gameTime = 0, cameraX = 0;
+let camShake = 0, camZoom = 1;
+let combo = 0, comboTimer = 0;
 
-const GROUND_H  = 80;           // height of the ground tile strip in world px
-const FLOOR_Y   = H - GROUND_H; // Y where the ground strip starts (top of grass)
-const STAND_Y   = FLOOR_Y;      // Y coordinate of the runner's feet
+const PARALLAX = { cloud: 0.15, house: 0.35, tree: 0.65, ground: 1, ob: 1 };
+const BASE_SPEED = 350; // pixels por segundo
+const GRAVITY = 2400;
+const JUMP_VEL = -850;
 
-// ── RENDERED SIZES (fixed, not computed from aspect ratio at runtime)
-// These are tuned by looking at the assets.
-// All images share the same original canvas proportions, so we
-// set a logical height and compute width = height * (natW/natH) ONCE after load.
-const SZ = {
-  // [render_height, render_width] — width filled after load
-  cloud:  { h: 55,  w: 0 },
-  house0: { h: 130, w: 0 },
-  house1: { h: 130, w: 0 },
-  tree:   { h: 95,  w: 0 },
-  bush:   { h: 52,  w: 0 },
-  fence:  { h: 52,  w: 0 },
-  pizza:  { h: 36,  w: 36 },
-  cart:   { h: 50,  w: 60 },
+// ── 4. ENTITIES ──────────────────────────────────────────────────
+let clouds=[], houses=[], trees=[], obstacles=[], pizzas=[], particles=[], popups=[];
+
+const player = {
+  x: 120, y: BASELINE, vy: 0,
+  onGround: true, squish: 1, tilt: 0,
+  getHitbox: function() {
+    // Hitbox menor que o sprite para perdoar o jogador
+    return { x: this.x + 25, y: this.y - SPRITES.cart.h + 20, w: 75, h: 75 };
+  }
 };
 
-function computeSizes() {
-  // Called once, after images are loaded.
-  // Width = height * (naturalWidth / naturalHeight)
-  ['cloud','house0','house1','tree','bush','fence'].forEach(k => {
-    const img = IMG[k];
-    if (img.naturalWidth && img.naturalHeight) {
-      SZ[k].w = Math.round(SZ[k].h * (img.naturalWidth / img.naturalHeight));
-    } else {
-      // Fallback widths if image failed
-      const fallback = { cloud:100, house0:120, house1:110, tree:80, bush:58, fence:52 };
-      SZ[k].w = fallback[k];
+const MISSIONS = [
+  { desc:'Colete 20 pizzas!',      target:20, prop:'pizzaTotal', done:false },
+  { desc:'Alcance velocidade 3x!', target:3,  prop:'speedLevel', done:false },
+  { desc:'Colete 50 pizzas!',      target:50, prop:'pizzaTotal', done:false },
+];
+let missionIdx = 0;
+
+// ── 5. SCENERY & SPAWNERS ────────────────────────────────────────
+function initScenery() {
+  clouds=[]; houses=[]; trees=[];
+  for(let i=0; i<6; i++) spawnCloud(i * 200);
+  for(let i=0; i<5; i++) spawnHouse(i * 300);
+  for(let i=0; i<6; i++) spawnTree(i * 250 + 100);
+}
+
+function spawnCloud(x) { clouds.push({ x: x + Math.random()*100, y: 30 + Math.random()*100 }); }
+function spawnHouse(x) { houses.push({ x: x + Math.random()*50, key: Math.random()<0.5?'house0':'house1' }); }
+function spawnTree(x) { trees.push({ x: x + Math.random()*100 }); }
+
+function spawnObstacle(forceX = null) {
+  const lastX = obstacles.length ? obstacles[obstacles.length-1].x : cameraX + W;
+  const gap = Math.max(350, 600 - (speedMult * 40)) * (0.8 + Math.random() * 0.6);
+  const type = Math.random() < 0.5 ? 'bush' : 'fence';
+  obstacles.push({
+    x: forceX || (lastX + gap),
+    type: type,
+    getHitbox: function() {
+      const s = SPRITES[this.type];
+      // Hitbox centralizado, compensando bordas
+      return { x: this.x + 15, y: BASELINE - s.h + 15, w: s.w - 30, h: s.h - 15 };
     }
   });
 }
 
-// ── PARALLAX SPEEDS (world px / sec at speedMult=1) ─────────────
-const GAME_SPEED = 220; // base game object speed
-const LAYER_SPD  = {
-  cloud:  28,
-  house:  60,
-  tree:   GAME_SPEED, // same as game speed → feel like part of ground
-};
-
-// ── SCENERY POOLS ────────────────────────────────────────────────
-let clouds = [], houses = [], trees = [];
-
-function initScenery() {
-  // Clouds — spread across full width + some offscreen right
-  clouds = [];
-  for (let i = 0; i < 5; i++) {
-    clouds.push({
-      x: i * (W / 4) + Math.random() * 60,
-      y: 20 + Math.random() * 55,
-    });
-  }
-
-  // Houses — placed left-to-right, anchored bottom at FLOOR_Y
-  houses = [];
-  const houseGap = 230;
-  for (let i = 0; i < 5; i++) {
-    houses.push({
-      key: i % 2 === 0 ? 'house0' : 'house1',
-      x: i * houseGap + Math.random() * 40,
-    });
-  }
-
-  // Trees — interspersed, slightly in front of houses
-  trees = [];
-  const treeGap = 260;
-  for (let i = 0; i < 5; i++) {
-    trees.push({
-      x: i * treeGap + 80 + Math.random() * 60,
-    });
-  }
-}
-
-// Ground scroll offset
-let groundOff = 0;
-
-// ── OBSTACLES ────────────────────────────────────────────────────
-// bush and fence are the two obstacle types.
-// Rendered bottom = STAND_Y; hitbox slightly inset.
-
-const OB_DEF = {
-  bush:  { key:'bush',  hitInsetX:0.18, hitInsetY:0.10 },
-  fence: { key:'fence', hitInsetX:0.12, hitInsetY:0.05 },
-};
-
-let obstacles = [];
-
-function getObW(type) { return SZ[OB_DEF[type].key].w; }
-function getObH(type) { return SZ[OB_DEF[type].key].h; }
-
-function obstacleHitbox(ob) {
-  const def = OB_DEF[ob.type];
-  const rw = getObW(ob.type), rh = getObH(ob.type);
-  const ix = def.hitInsetX, iy = def.hitInsetY;
-  return {
-    x: ob.x + rw * ix,
-    y: (STAND_Y - rh) + rh * iy,
-    w: rw * (1 - ix * 2),
-    h: rh * (1 - iy),
-  };
-}
-
-function spawnObstacle() {
-  const lastX  = obstacles.length ? obstacles[obstacles.length-1].x : W + 60;
-  const baseGap = Math.max(260, 500 - speedMult * 45);
-  const gap    = baseGap * (0.65 + Math.random() * 0.7);
-  const type   = Math.random() < 0.55 ? 'bush' : 'fence';
-  obstacles.push({ type, x: lastX + gap });
-}
-
-// ── PIZZAS ───────────────────────────────────────────────────────
-const PIZ_H = SZ.pizza.h;
-const PIZ_W = SZ.pizza.w;
-let pizzas = [];
-
-function spawnPizza() {
-  const lastObX = obstacles.length ? obstacles[obstacles.length-1].x : W + 80;
-  const groundY = STAND_Y - PIZ_H - 4;   // on ground
-  const airY    = STAND_Y - PIZ_H - 80;  // mid-air
+function spawnPizza(forceX = null) {
+  const lastX = obstacles.length ? obstacles[obstacles.length-1].x : cameraX + W;
+  const isAir = Math.random() < 0.4;
   pizzas.push({
-    x: lastObX + 80 + Math.random() * 140,
-    y: Math.random() < 0.5 ? groundY : airY,
+    x: forceX || (lastX + 150 + Math.random() * 200),
+    y: BASELINE - (isAir ? 180 : 20),
     collected: false,
-    phase: Math.random() * Math.PI * 2,
+    phase: Math.random() * Math.PI * 2
   });
 }
 
-// ── PLAYER ───────────────────────────────────────────────────────
-const CART_W    = SZ.cart.w;
-const CART_H    = SZ.cart.h;
-const PLAYER_X  = 110;
-const GRAVITY   = 1700;
-const JUMP_VEL  = -630;
-
-const player = {
-  x: PLAYER_X,
-  y: STAND_Y - CART_H,
-  vy: 0,
-  onGround: true,
-  squish: 1,
-  tilt: 0,
-};
-
-// ── PARTICLES + POPUPS ───────────────────────────────────────────
-let particles = [], popups = [];
-
+// ── 6. EFFECTS & AUDIO ───────────────────────────────────────────
 function spawnParticles(x, y, color, n, spd) {
-  for (let i = 0; i < n; i++) {
-    const a = (Math.PI*2*i/n) + Math.random()*.5;
+  for (let i=0; i<n; i++) {
+    const a = (Math.PI*2*i/n) + Math.random()*0.5;
     particles.push({
-      x, y,
-      vx: Math.cos(a)*spd*(0.5+Math.random()),
-      vy: Math.sin(a)*spd*(0.5+Math.random()) - 40,
-      life:1, decay:.025+Math.random()*.03,
-      size:4+Math.random()*5, color,
+      x, y, vx: Math.cos(a)*spd*(0.5+Math.random()), vy: Math.sin(a)*spd*(0.5+Math.random()) - 50,
+      life: 1, decay: 0.02 + Math.random()*0.03, size: 4 + Math.random()*6, color
     });
   }
 }
 
 function spawnPopup(x, y, text, color='#fff') {
-  popups.push({ x, y, text, color, life:1, vy:-70 });
+  popups.push({ x, y, text, color, life:1, vy:-80 });
 }
 
-// ── AUDIO ────────────────────────────────────────────────────────
 const AC = new (window.AudioContext || window.webkitAudioContext)();
-const unlockAC = () => AC.resume();
-
+const unlockAC = () => { if(AC.state==='suspended') AC.resume(); };
 function beep(type, f0, f1, dur, vol) {
+  if (AC.state !== 'running') return;
   const o=AC.createOscillator(), g=AC.createGain();
-  o.connect(g); g.connect(AC.destination);
-  o.type=type;
+  o.connect(g); g.connect(AC.destination); o.type=type;
   o.frequency.setValueAtTime(f0, AC.currentTime);
-  if (f1!==f0) o.frequency.exponentialRampToValueAtTime(f1, AC.currentTime+dur);
+  if(f1!==f0) o.frequency.exponentialRampToValueAtTime(f1, AC.currentTime+dur);
   g.gain.setValueAtTime(vol, AC.currentTime);
   g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime+dur);
   o.start(); o.stop(AC.currentTime+dur);
 }
-const sndJump    = () => beep('sine', 260, 560, 0.14, 0.18);
-const sndHit     = () => beep('sawtooth', 140, 50, 0.30, 0.28);
-const sndCollect = () => {
-  [0,.06,.12].forEach((t,i)=>{
-    const o=AC.createOscillator(),g=AC.createGain();
-    o.connect(g);g.connect(AC.destination);
-    o.type='triangle'; o.frequency.value=[520,660,780][i];
-    g.gain.setValueAtTime(0.13,AC.currentTime+t);
-    g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+t+.1);
-    o.start(AC.currentTime+t); o.stop(AC.currentTime+t+.1);
-  });
-};
-const sndRecord  = () => {
-  [0,.1,.2,.3].forEach((t,i)=>{
-    const o=AC.createOscillator(),g=AC.createGain();
-    o.connect(g);g.connect(AC.destination);
-    o.type='sine'; o.frequency.value=[523,659,784,1047][i];
-    g.gain.setValueAtTime(0.14,AC.currentTime+t);
-    g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+t+.14);
-    o.start(AC.currentTime+t); o.stop(AC.currentTime+t+.14);
-  });
-};
+const sndJump    = () => beep('sine', 260, 560, 0.14, 0.2);
+const sndHit     = () => beep('sawtooth', 140, 50, 0.3, 0.3);
+const sndCollect = () => { beep('triangle',520,660,0.1,0.15); setTimeout(()=>beep('triangle',780,780,0.1,0.15),80); };
+const sndRecord  = () => { beep('sine',523,659,0.15,0.2); setTimeout(()=>beep('sine',784,1047,0.2,0.2),100); };
 
-// ── GAME STATE ───────────────────────────────────────────────────
-let state = 'loading'; // loading | start | playing | dead
-let score=0, bestScore=parseInt(localStorage.getItem('pgBest')||'0');
-let pizzaCount=0, pizzaTotal=0;
-let speedMult=1, speedLevel=1;
-let gameTime=0, frame=0;
-let camShake=0, camZoom=1;
-let combo=0, comboTimer=0;
-
-// ── MISSIONS ─────────────────────────────────────────────────────
-const MISSIONS = [
-  { desc:'Colete 20 pizzas!',      target:20, prop:'pizzaTotal' },
-  { desc:'Alcance velocidade 3x!', target:3,  prop:'speedLevel' },
-  { desc:'Colete 50 pizzas!',      target:50, prop:'pizzaTotal' },
-];
-let missionIdx = 0;
-
-// ── HELPERS ──────────────────────────────────────────────────────
-function lerp(a,b,t){ return a+(b-a)*t; }
-
-function rectsOverlap(ax,ay,aw,ah, bx,by,bw,bh, margin=0) {
-  return ax+margin < bx+bw-margin &&
-         ax+aw-margin > bx+margin &&
-         ay+margin < by+bh-margin &&
-         ay+ah-margin > by+margin;
-}
-
-// ── SHOW TOAST ───────────────────────────────────────────────────
-function showToast(txt, delay=0) {
-  setTimeout(()=>{
-    toastEl.textContent = txt;
-    toastEl.classList.add('show');
-    setTimeout(()=>toastEl.classList.remove('show'), 2800);
-  }, delay);
-}
-
-// ── RESET ────────────────────────────────────────────────────────
+// ── 7. GAME LOGIC ────────────────────────────────────────────────
 function resetGame() {
-  score=0; pizzaCount=0; pizzaTotal=0;
-  speedMult=1; speedLevel=1;
-  gameTime=0; frame=0;
-  combo=0; comboTimer=0;
-  camShake=0; camZoom=1;
-  groundOff=0;
-
-  player.x=PLAYER_X; player.y=STAND_Y-CART_H;
-  player.vy=0; player.onGround=true; player.squish=1; player.tilt=0;
-
+  score=0; pizzaCount=0; pizzaTotal=0; speedMult=1; speedLevel=1;
+  gameTime=0; cameraX=0; combo=0; comboTimer=0; camShake=0; camZoom=1;
+  player.y = BASELINE; player.vy = 0; player.onGround = true; player.tilt = 0; player.squish = 1;
   obstacles=[]; pizzas=[]; particles=[]; popups=[];
-  MISSIONS.forEach(m=>m.done=false);
-  missionIdx=0;
-  comboEl.style.opacity='0';
-
+  MISSIONS.forEach(m=>m.done=false); missionIdx=0;
+  
+  document.getElementById('combo').style.opacity = '0';
+  document.getElementById('toast').classList.remove('show');
+  
   initScenery();
-  for(let i=0;i<3;i++) spawnObstacle();
-  for(let i=0;i<3;i++) spawnPizza();
+  for(let i=0; i<4; i++) spawnObstacle(W + i*400);
+  for(let i=0; i<3; i++) spawnPizza(W + 200 + i*400);
 
-  showToast('🎯 '+MISSIONS[0].desc, 800);
-  state='playing';
+  showToast('🎯 ' + MISSIONS[0].desc, 800);
+  state = 'playing';
 }
 
-// ── JUMP ─────────────────────────────────────────────────────────
 function jump() {
-  if (state!=='playing') return;
+  if (state !== 'playing') return;
   if (player.onGround) {
-    player.vy=JUMP_VEL; player.onGround=false;
+    player.vy = JUMP_VEL; player.onGround = false; player.squish = 1.3;
     sndJump();
   }
 }
 
-// ── GAME OVER ────────────────────────────────────────────────────
 function triggerDead() {
-  if (state!=='playing') return;
-  state='dead';
-  sndHit(); camShake=0.6;
-  spawnParticles(player.x+CART_W/2, player.y+CART_H/2, '#8d6e63', 18, 220);
+  if (state !== 'playing') return;
+  state = 'dead';
+  sndHit(); camShake = 0.8;
+  spawnParticles(player.x + SPRITES.cart.w/2, player.y - SPRITES.cart.h/2, '#e74c3c', 25, 300);
+  
   const isRec = score > bestScore;
-  if (isRec) { bestScore=score; localStorage.setItem('pgBest',Math.floor(bestScore)); sndRecord(); }
-  goS.textContent  = Math.floor(score).toLocaleString();
-  goP.textContent  = pizzaCount+' 🍕';
-  goB.textContent  = Math.floor(bestScore).toLocaleString();
-  recBadge.style.display = isRec?'block':'none';
-  setTimeout(()=>{ goScr.style.display='flex'; }, 650);
+  if (isRec) { bestScore = score; localStorage.setItem('pgBest', Math.floor(bestScore)); sndRecord(); }
+  
+  document.getElementById('go-s').textContent = Math.floor(score).toLocaleString();
+  document.getElementById('go-p').textContent = pizzaCount + ' 🍕';
+  document.getElementById('go-b').textContent = Math.floor(bestScore).toLocaleString();
+  document.getElementById('rec-badge').style.display = isRec ? 'block' : 'none';
+  setTimeout(() => document.getElementById('gameover-screen').style.display='flex', 800);
 }
 
-// ── MISSION CHECK ────────────────────────────────────────────────
 function checkMissions() {
-  if (missionIdx>=MISSIONS.length) return;
+  if (missionIdx >= MISSIONS.length) return;
   const m = MISSIONS[missionIdx];
-  const v = m.prop==='pizzaTotal' ? pizzaTotal : speedLevel;
-  if (v>=m.target && !m.done) {
-    m.done=true; missionIdx++;
-    showToast('✅ '+m.desc+' Concluído!');
-    if (missionIdx<MISSIONS.length)
-      showToast('🎯 '+MISSIONS[missionIdx].desc, 3400);
+  const v = m.prop === 'pizzaTotal' ? pizzaTotal : speedLevel;
+  if (v >= m.target && !m.done) {
+    m.done = true; missionIdx++;
+    showToast('✅ ' + m.desc + ' Concluído!');
+    if (missionIdx < MISSIONS.length) showToast('🎯 ' + MISSIONS[missionIdx].desc, 3400);
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  DRAW FUNCTIONS
-// ═══════════════════════════════════════════════════════════════
+function showToast(txt, delay=0) {
+  const el = document.getElementById('toast');
+  setTimeout(() => {
+    el.textContent = txt; el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2800);
+  }, delay);
+}
 
-// Sky — full canvas background image
-function drawSky() {
-  if (IMG.sky.naturalWidth) {
-    ctx.drawImage(IMG.sky, 0, 0, W, H);
-  } else {
-    ctx.fillStyle='#4FC3F7'; ctx.fillRect(0,0,W,H);
+function rectOverlap(r1, r2) {
+  return r1.x < r2.x + r2.w && r1.x + r1.w > r2.x &&
+         r1.y < r2.y + r2.h && r1.y + r1.h > r2.y;
+}
+
+// ── 8. RENDER ENGINE ─────────────────────────────────────────────
+function drawSprite(imgKey, x, y, alignBottom=true) {
+  const s = SPRITES[imgKey];
+  const img = IMG[imgKey];
+  const drawX = x + s.ox;
+  const drawY = alignBottom ? y - s.h + s.oy : y + s.oy;
+  if (img && img.naturalWidth) {
+    ctx.drawImage(img, drawX, drawY, s.w, s.h);
   }
 }
 
-// Clouds — slow parallax, no y constraint (float in upper sky)
-function drawClouds(dt) {
-  const {w, h} = SZ.cloud;
-  clouds.forEach(cl => {
-    if (state==='playing') cl.x -= LAYER_SPD.cloud * dt;
-    if (cl.x + w < 0) { cl.x = W + 10; cl.y = 18 + Math.random()*50; }
-    if (IMG.cloud.naturalWidth) {
-      ctx.drawImage(IMG.cloud, cl.x, cl.y, w, h);
-    }
+function render(dt) {
+  // Bg Fill & Sky
+  ctx.fillStyle = '#4FC3F7'; ctx.fillRect(0,0,W,H);
+  if(IMG.sky && IMG.sky.naturalWidth) ctx.drawImage(IMG.sky,0,0,W,H);
+
+  // Parallax Layers
+  const cx = cameraX;
+
+  // Clouds
+  clouds.forEach(c => {
+    const rX = ((c.x - cx * PARALLAX.cloud) % (W + 200) + (W + 200)) % (W + 200) - 100;
+    drawSprite('cloud', rX, c.y, false);
   });
-}
 
-// Houses — medium parallax, bottom-anchored at FLOOR_Y
-function drawHouses(dt) {
+  // Houses
   houses.forEach(h => {
-    if (state==='playing') h.x -= LAYER_SPD.house * dt;
-    const sz = SZ[h.key];
-    if (h.x + sz.w < 0) {
-      h.x = W + 20 + Math.random()*80;
-      h.key = Math.random()<0.5?'house0':'house1';
-    }
-    if (IMG[h.key].naturalWidth) {
-      ctx.drawImage(IMG[h.key], h.x, FLOOR_Y - sz.h, sz.w, sz.h);
-    }
+    const rX = ((h.x - cx * PARALLAX.house) % (W * 2) + (W * 2)) % (W * 2) - 200;
+    drawSprite(h.key, rX, BASELINE, true);
   });
-}
 
-// Trees — same speed as ground objects, bottom-anchored at FLOOR_Y
-function drawTrees(dt) {
-  const {w, h} = SZ.tree;
-  trees.forEach(tr => {
-    if (state==='playing') tr.x -= LAYER_SPD.tree * speedMult * dt;
-    if (tr.x + w < 0) {
-      tr.x = W + 10 + Math.random()*80;
-    }
-    if (IMG.tree.naturalWidth) {
-      ctx.drawImage(IMG.tree, tr.x, FLOOR_Y - h, w, h);
-    }
+  // Trees
+  trees.forEach(t => {
+    const rX = ((t.x - cx * PARALLAX.tree) % (W * 1.5) + (W * 1.5)) % (W * 1.5) - 150;
+    drawSprite('tree', rX, BASELINE, true);
   });
-}
 
-// Ground — looping horizontal tile, bottom-anchored at H
-function drawGround(dt) {
-  if (state==='playing') {
-    groundOff = (groundOff + GAME_SPEED * speedMult * dt) % W;
-  }
-  if (IMG.ground.naturalWidth) {
-    // Draw two copies side by side, shifted by groundOff
-    ctx.drawImage(IMG.ground, -groundOff,     FLOOR_Y, W, GROUND_H);
-    ctx.drawImage(IMG.ground, W - groundOff,  FLOOR_Y, W, GROUND_H);
-    // Third copy for when offset is near 0
-    if (groundOff < 2) {
-      ctx.drawImage(IMG.ground, 2*W - groundOff, FLOOR_Y, W, GROUND_H);
-    }
+  // Ground Loop
+  const gOff = (cx * PARALLAX.ground) % W;
+  if (IMG.ground && IMG.ground.naturalWidth) {
+    ctx.drawImage(IMG.ground, -gOff, BASELINE, W, H - BASELINE);
+    ctx.drawImage(IMG.ground, W - gOff, BASELINE, W, H - BASELINE);
   } else {
-    ctx.fillStyle='#7cb87c'; ctx.fillRect(0, FLOOR_Y, W, GROUND_H);
+    ctx.fillStyle = '#66BB6A'; ctx.fillRect(0, BASELINE, W, H - BASELINE);
+    ctx.fillStyle = '#795548'; ctx.fillRect(0, BASELINE+40, W, H - BASELINE - 40);
   }
-}
 
-// Obstacles — bush / fence as images, bottom-anchored at STAND_Y
-function drawObstacles() {
+  // Obstacles
   obstacles.forEach(ob => {
-    const key = OB_DEF[ob.type].key;
-    const rw = SZ[key].w, rh = SZ[key].h;
-    if (IMG[key].naturalWidth) {
-      ctx.drawImage(IMG[key], ob.x, STAND_Y - rh, rw, rh);
-    } else {
-      ctx.fillStyle = ob.type==='bush'?'#4caf50':'#795548';
-      ctx.fillRect(ob.x, STAND_Y-rh, rw, rh);
-    }
-
-    // Debug hitbox (uncomment to tune)
-    // const hb=obstacleHitbox(ob);
-    // ctx.strokeStyle='red'; ctx.lineWidth=1;
-    // ctx.strokeRect(hb.x,hb.y,hb.w,hb.h);
+    const rX = ob.x - cx * PARALLAX.ob;
+    if(rX > -100 && rX < W + 100) drawSprite(ob.type, rX, BASELINE, true);
   });
-}
 
-// Pizzas — image with float + rotation, bottom visible at STAND_Y level
-function drawPizzas(dt) {
+  // Pizzas
   pizzas.forEach(pz => {
-    if (pz.collected) return;
-    pz.phase += dt * 3.2;
-    const bob = Math.sin(pz.phase) * 6;
-    const rot = Math.sin(pz.phase * 0.55) * 0.18;
-    ctx.save();
-    ctx.translate(pz.x + PIZ_W/2, pz.y + PIZ_H/2 + bob);
-    ctx.rotate(rot);
-    ctx.shadowBlur=18; ctx.shadowColor='#f39c12';
-    if (IMG.pizza.naturalWidth) {
-      ctx.drawImage(IMG.pizza, -PIZ_W/2, -PIZ_H/2, PIZ_W, PIZ_H);
-    } else {
-      ctx.font='26px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText('🍕',0,0);
+    if(pz.collected) return;
+    const rX = pz.x - cx * PARALLAX.ob;
+    if(rX > -100 && rX < W + 100) {
+      pz.phase += dt * 4;
+      const bob = Math.sin(pz.phase) * 12;
+      const rot = Math.sin(pz.phase * 0.5) * 0.2;
+      ctx.save();
+      ctx.translate(rX + SPRITES.pizza.w/2, pz.y + bob);
+      ctx.rotate(rot);
+      ctx.shadowBlur = 20; ctx.shadowColor = 'rgba(243,156,18,0.8)';
+      if (IMG.pizza && IMG.pizza.naturalWidth) {
+        ctx.drawImage(IMG.pizza, -SPRITES.pizza.w/2, -SPRITES.pizza.h/2, SPRITES.pizza.w, SPRITES.pizza.h);
+      }
+      ctx.restore();
     }
-    ctx.shadowBlur=0;
-    ctx.restore();
   });
-}
 
-// Player cart — squish + tilt + shadow
-function drawPlayer() {
-  const px=player.x, py=player.y;
-  const cw=CART_W, ch=CART_H;
-
-  // Shadow — gets smaller as player rises
-  const airFrac = Math.max(0, Math.min(1, (STAND_Y-ch-py)/100));
-  ctx.save();
-  ctx.globalAlpha = 0.22*(1-airFrac*0.6);
-  ctx.fillStyle='#000';
+  // Player Shadow
+  const airH = BASELINE - player.y;
+  const shadowScale = Math.max(0.3, 1 - (airH / 200));
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
   ctx.beginPath();
-  ctx.ellipse(px+cw/2, STAND_Y+4, (cw/2)*(0.7-airFrac*0.3), 5, 0,0,Math.PI*2);
+  ctx.ellipse(player.x + SPRITES.cart.w/2, BASELINE + 10, (SPRITES.cart.w/2.5) * shadowScale, 6 * shadowScale, 0, 0, Math.PI*2);
   ctx.fill();
-  ctx.restore();
 
-  // Cart
+  // Player Cart
   ctx.save();
-  ctx.translate(px+cw/2, py+ch/2);
+  ctx.translate(player.x + SPRITES.cart.w/2, player.y - SPRITES.cart.h/2);
   ctx.rotate(player.tilt);
   ctx.scale(1, player.squish);
-  if (IMG.cart.naturalWidth) {
-    ctx.drawImage(IMG.cart, -cw/2, -ch/2, cw, ch);
-  } else {
-    ctx.fillStyle='#e91e63'; ctx.fillRect(-cw/2,-ch/2,cw,ch);
+  if (IMG.cart && IMG.cart.naturalWidth) {
+    ctx.drawImage(IMG.cart, -SPRITES.cart.w/2, -SPRITES.cart.h/2, SPRITES.cart.w, SPRITES.cart.h);
   }
   ctx.restore();
-}
 
-// Particles
-function drawParticles(dt) {
-  particles = particles.filter(p=>p.life>0);
-  particles.forEach(p=>{
-    p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=300*dt; p.life-=p.decay;
-    ctx.globalAlpha=Math.max(0,p.life);
-    ctx.fillStyle=p.color;
-    ctx.beginPath(); ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2); ctx.fill();
+  // Particles
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    p.x += p.vx * dt; p.y += p.vy * dt; p.vy += GRAVITY * 0.4 * dt; p.life -= p.decay;
+    const radius = Math.max(0.1, p.size * p.life);
+    if (!Number.isNaN(radius) && Number.isFinite(radius) && radius > 0.1) {
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, radius, 0, Math.PI*2); ctx.fill();
+    }
   });
-  ctx.globalAlpha=1;
-}
+  ctx.globalAlpha = 1;
 
-// Score popups
-function drawPopups(dt) {
-  popups = popups.filter(p=>p.life>0);
-  popups.forEach(p=>{
-    p.y+=p.vy*dt; p.life-=dt*1.5;
-    ctx.globalAlpha=Math.max(0,p.life);
-    ctx.fillStyle=p.color;
-    ctx.font='bold 17px Arial'; ctx.textAlign='center';
-    ctx.fillText(p.text,p.x,p.y);
+  // Popups
+  popups = popups.filter(p => p.life > 0);
+  popups.forEach(p => {
+    p.y += p.vy * dt; p.life -= dt * 1.5;
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.color; ctx.font = '900 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 4;
+    ctx.strokeText(p.text, p.x, p.y);
+    ctx.fillText(p.text, p.x, p.y);
   });
-  ctx.globalAlpha=1;
+  ctx.globalAlpha = 1;
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  MAIN LOOP
-// ═══════════════════════════════════════════════════════════════
-let lastTs = 0;
-
+// ── 9. MAIN LOOP ─────────────────────────────────────────────────
+let lastTs = performance.now();
 function tick(ts) {
-  const dt = Math.min((ts - lastTs) / 1000, 0.05);
+  const dt = Math.min((ts - lastTs) / 1000, 0.05); // Cap 50ms (20fps min) to prevent physics explosion
   lastTs = ts;
-  frame++;
 
   ctx.save();
 
-  // Camera shake
-  if (camShake>0) {
-    ctx.translate((Math.random()-.5)*camShake*14, (Math.random()-.5)*camShake*14);
-    camShake = Math.max(0, camShake - dt*4);
+  // Camera FX
+  if (camShake > 0) {
+    ctx.translate((Math.random()-0.5)*camShake*20, (Math.random()-0.5)*camShake*20);
+    camShake -= dt * 5;
   }
+  if (Math.abs(camZoom - 1) > 0.001) {
+    camZoom += (1 - camZoom) * dt * 10;
+    ctx.translate(W/2, H/2); ctx.scale(camZoom, camZoom); ctx.translate(-W/2, -H/2);
+  } else { camZoom = 1; }
 
-  // Camera zoom (collect flash)
-  if (Math.abs(camZoom-1)>0.0008) {
-    camZoom = lerp(camZoom, 1, dt*10);
-    ctx.translate(W/2,H/2); ctx.scale(camZoom,camZoom); ctx.translate(-W/2,-H/2);
-  } else { camZoom=1; }
+  // Logic Update
+  if (state === 'playing') {
+    gameTime += dt;
+    const currentSpeed = BASE_SPEED * speedMult;
+    cameraX += currentSpeed * dt;
+    score += speedMult * 15 * dt;
 
-  // ── RENDER LAYERS ─────────────────────────────────────
-  drawSky();
-  drawClouds(dt);
-  drawHouses(dt);   // behind trees
-  drawTrees(dt);    // in front of houses, moving with ground
-  drawGround(dt);   // bottom strip
-
-  // ── GAME UPDATE ───────────────────────────────────────
-  if (state==='playing') {
-    gameTime+=dt;
-
-    // Speed ramp every 20 seconds
-    const ns = 1 + Math.floor(gameTime/20)*0.15;
-    if (ns>speedMult) {
-      speedMult=ns;
-      speedLevel=Math.floor(speedMult);
-      spawnParticles(W*0.6, STAND_Y-40, '#ffffffcc', 10, 300);
+    // Speed Progression
+    const ns = 1 + Math.floor(gameTime / 25) * 0.2;
+    if (ns > speedMult) {
+      speedMult = ns; speedLevel = Math.floor(speedMult * 10)/10;
+      spawnParticles(player.x + 50, player.y - 50, '#fff', 15, 350);
+      checkMissions();
     }
 
-    score += speedMult*12*dt;
+    // Combo
+    if (comboTimer > 0) {
+      comboTimer -= dt;
+      if(comboTimer <= 0) { combo=0; document.getElementById('combo').style.opacity='0'; }
+    }
 
-    // Combo decay
-    comboTimer-=dt;
-    if (comboTimer<=0) { combo=0; comboEl.style.opacity='0'; }
-
-    // ── PHYSICS ─────────────────────────────────────────
+    // Physics (Player)
     if (!player.onGround) {
-      player.vy += GRAVITY*dt;
-      player.y  += player.vy*dt;
-      // Tilt forward on way up, neutral on way down
-      player.tilt = Math.max(-0.2, Math.min(0.15, -player.vy*0.00026));
-    }
-
-    // Land on ground
-    if (player.y >= STAND_Y-CART_H) {
-      if (!player.onGround) {
-        player.squish = 0.60;
-        spawnParticles(player.x+CART_W/2, STAND_Y+2, '#8BC34A', 7, 85);
+      player.vy += GRAVITY * dt;
+      player.y += player.vy * dt;
+      player.tilt = Math.max(-0.25, Math.min(0.2, player.vy * 0.0004));
+      if (player.y >= BASELINE) {
+        player.y = BASELINE; player.vy = 0; player.onGround = true; player.tilt = 0;
+        player.squish = 0.6; // Squash landing
+        spawnParticles(player.x + SPRITES.cart.w/2, BASELINE, '#8BC34A', 10, 150);
       }
-      player.y=STAND_Y-CART_H; player.vy=0; player.onGround=true; player.tilt=0;
     }
-    player.squish = lerp(player.squish, 1, dt*14);
+    player.squish += (1 - player.squish) * dt * 15; // Recover squash
 
-    // ── MOVE OBSTACLES ───────────────────────────────────
-    const spd = GAME_SPEED*speedMult;
-    obstacles.forEach(ob=>{ ob.x-=spd*dt; });
-    obstacles = obstacles.filter(ob=>ob.x+getObW(ob.type)>-20);
-    while(obstacles.length<4) spawnObstacle();
+    // Spawners & Cleanup
+    while(obstacles.length < 5) spawnObstacle();
+    while(pizzas.length < 4) spawnPizza();
+    obstacles = obstacles.filter(o => o.x - cameraX > -200);
+    pizzas = pizzas.filter(p => p.x - cameraX > -200 && !p.collected);
 
-    // ── MOVE PIZZAS ──────────────────────────────────────
-    pizzas.forEach(pz=>{ pz.x-=spd*dt; });
-    pizzas = pizzas.filter(pz=>pz.x>-60 && !pz.collected);
-    while(pizzas.length<4) spawnPizza();
-
-    // ── COLLISION: obstacles ─────────────────────────────
-    const M=10; // forgiveness margin in px
+    // Collisions
+    const pBox = player.getHitbox();
     for (const ob of obstacles) {
-      const hb=obstacleHitbox(ob);
-      if (rectsOverlap(player.x,player.y,CART_W,CART_H, hb.x,hb.y,hb.w,hb.h, M)) {
-        triggerDead(); break;
-      }
+      const rX = ob.x - cameraX;
+      if (rX > W || rX < -200) continue;
+      const obBox = ob.getHitbox();
+      obBox.x -= cameraX; // Ajuste para coord de tela
+      if (rectOverlap(pBox, obBox)) { triggerDead(); break; }
     }
 
-    // ── COLLISION: pizzas ────────────────────────────────
-    if (state==='playing') {
-      pizzas.forEach(pz=>{
-        if (pz.collected) return;
-        if (rectsOverlap(player.x,player.y,CART_W,CART_H, pz.x,pz.y,PIZ_W,PIZ_H, 6)) {
-          pz.collected=true; pizzaCount++; pizzaTotal++;
-          score+=100; sndCollect(); camZoom=1.022;
-          combo++; comboTimer=2;
-          if (combo>=2) { comboEl.textContent=`COMBO x${combo} 🔥`; comboEl.style.opacity='1'; }
-          spawnParticles(pz.x+PIZ_W/2,pz.y+PIZ_H/2,'#f39c12',10,155);
-          spawnParticles(pz.x+PIZ_W/2,pz.y+PIZ_H/2,'#fff176',5,200);
-          spawnPopup(pz.x+PIZ_W/2, pz.y-4, combo>=2?`+${combo*100}🍕`:'+100', '#f39c12');
+    if (state === 'playing') {
+      pizzas.forEach(pz => {
+        if(pz.collected) return;
+        const rX = pz.x - cameraX;
+        const pzBox = { x: rX - SPRITES.pizza.w/2, y: pz.y - SPRITES.pizza.h/2, w: SPRITES.pizza.w, h: SPRITES.pizza.h };
+        if (rectOverlap(pBox, pzBox)) {
+          pz.collected = true; pizzaCount++; pizzaTotal++; score += 100;
+          sndCollect(); camZoom = 1.03;
+          combo++; comboTimer = 2.5;
+          const cEl = document.getElementById('combo');
+          if(combo >= 2) { cEl.textContent = `COMBO x${combo} 🔥`; cEl.style.opacity='1'; }
+          spawnParticles(pzBox.x+24, pzBox.y+24, '#f39c12', 15, 200);
+          spawnPopup(pzBox.x+24, pzBox.y-20, combo>=2?`+${combo*100}`:'+100', '#f1c40f');
           checkMissions();
         }
       });
     }
 
-    // HUD
-    hpv.textContent = '🍕 '+pizzaCount;
-    hsv.textContent = Math.floor(score).toLocaleString();
-    hbv.textContent = Math.floor(bestScore).toLocaleString();
-    hvv.textContent = speedMult.toFixed(1)+'x';
+    // Update HUD
+    document.getElementById('hp-v').textContent = `🍕 ${pizzaCount}`;
+    document.getElementById('hs-v').textContent = Math.floor(score).toLocaleString();
+    document.getElementById('hb-v').textContent = Math.floor(bestScore).toLocaleString();
+    document.getElementById('hv-v').textContent = speedMult.toFixed(1) + 'x';
   }
 
-  // ── ALWAYS ON TOP ─────────────────────────────────────
-  drawObstacles();
-  drawPizzas(dt);
-  drawPlayer();
-  drawParticles(dt);
-  drawPopups(dt);
-
+  render(dt);
   ctx.restore();
   requestAnimationFrame(tick);
 }
 
-// ── BOOT ─────────────────────────────────────────────────────────
+// ── 10. INPUT & BOOT ─────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); unlockAC(); jump(); }
+});
+canvas.addEventListener('touchstart', e => { e.preventDefault(); unlockAC(); jump(); }, {passive:false});
+canvas.addEventListener('mousedown', () => { unlockAC(); jump(); });
+
+document.getElementById('btn-start').addEventListener('click', () => {
+  unlockAC(); document.getElementById('start-screen').style.display='none'; resetGame();
+});
+document.getElementById('btn-restart').addEventListener('click', () => {
+  unlockAC(); document.getElementById('gameover-screen').style.display='none'; resetGame();
+});
+
+// Init
 loadAllAssets().then(() => {
-  computeSizes();       // compute widths from naturalWidth/naturalHeight
-  initScenery();        // build scenery arrays with correct sizes
-
-  // Hide loading, show start
-  loading.style.display = 'none';
-  startScr.style.display = 'flex';
-
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('start-screen').style.display = 'flex';
+  initScenery();
   state = 'start';
-
-  // Start render loop (renders background only until game starts)
-  requestAnimationFrame(ts => { lastTs=ts; requestAnimationFrame(tick); });
-});
-
-// ── INPUT ────────────────────────────────────────────────────────
-document.addEventListener('keydown', e=>{
-  if (e.code==='Space'||e.code==='ArrowUp') { e.preventDefault(); unlockAC(); jump(); }
-});
-canvas.addEventListener('touchstart', e=>{ e.preventDefault(); unlockAC(); jump(); },{passive:false});
-canvas.addEventListener('mousedown',  ()=>{ unlockAC(); jump(); });
-
-document.getElementById('btn-start').addEventListener('click', ()=>{
-  unlockAC(); startScr.style.display='none'; resetGame();
-});
-document.getElementById('btn-restart').addEventListener('click', ()=>{
-  unlockAC(); goScr.style.display='none'; resetGame();
+  requestAnimationFrame(tick);
 });
 </script>
 </body>
