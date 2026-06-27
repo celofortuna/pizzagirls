@@ -466,14 +466,16 @@ function render(dt) {
     drawSprite('tree', rX, BASELINE, true);
   });
 
-  // Ground Loop
+  // Ground Loop (Esticado verticalmente para cima para encontrar e alinhar perfeitamente com a base dos personagens)
   const gOff = (cx * PARALLAX.ground) % W;
+  const groundY = BASELINE - 45; 
+  const groundH = H - groundY;
   if (IMG.ground && IMG.ground.naturalWidth) {
-    ctx.drawImage(IMG.ground, -gOff, BASELINE, W, H - BASELINE);
-    ctx.drawImage(IMG.ground, W - gOff, BASELINE, W, H - BASELINE);
+    ctx.drawImage(IMG.ground, -gOff, groundY, W, groundH);
+    ctx.drawImage(IMG.ground, W - gOff, groundY, W, groundH);
   } else {
-    ctx.fillStyle = '#66BB6A'; ctx.fillRect(0, BASELINE, W, H - BASELINE);
-    ctx.fillStyle = '#795548'; ctx.fillRect(0, BASELINE+40, W, H - BASELINE - 40);
+    ctx.fillStyle = '#66BB6A'; ctx.fillRect(0, groundY, W, groundH);
+    ctx.fillStyle = '#795548'; ctx.fillRect(0, BASELINE, W, H - BASELINE);
   }
 
   // Obstacles
